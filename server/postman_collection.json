@@ -1,0 +1,670 @@
+{
+  "info": {
+    "_postman_id": "9f2c3d2a-5f51-4c6b-9c3e-8b9e54f8b1a0",
+    "name": "⚖️ AI Lawyer Assistant API",
+    "description": "AI Lawyer Assistant — Lawyer ও Client-দের email conversations DB তে store করে, প্রতি 12 ঘন্টায় AI update পাঠায়, এবং legal chatbot সুবিধা দেয়।\n\n**Base URL:** http://localhost:5000\n\n**Setup:**\n1. `conversationId` variable টি একটি real conversation _id দিয়ে update করো (GET /api/conversations থেকে পাবে)\n2. `clientEmail` variable টি একটি real client email দিয়ে update করো",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "description": "Server base URL"
+    },
+    {
+      "key": "conversationId",
+      "value": "",
+      "description": "GET /api/conversations থেকে একটি _id copy করে এখানে paste করো"
+    },
+    {
+      "key": "clientEmail",
+      "value": "client@gmail.com",
+      "description": "Test email পাঠানোর জন্য client-এর email"
+    }
+  ],
+  "item": [
+    {
+      "name": "🟢 Health Check",
+      "description": "Server চলছে কিনা দেখো",
+      "item": [
+        {
+          "name": "GET / — Server Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Server is running', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('OK');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Server running কিনা check করো। Response: `{ status: 'OK', message: '...' }`"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"OK\",\n  \"message\": \"AI Lawyer Assistant Running\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "💬 Legal Chatbot",
+      "description": "Lawyer আইনি প্রশ্ন করবেন, AI Bangladesh law অনুযায়ী উত্তর দেবে।\n`chatHistory` array দিলে AI আগের কথোপকথন মনে রাখে।",
+      "item": [
+        {
+          "name": "POST /api/chat/ask — Simple Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Chatbot responded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.answer).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"চুক্তি ভঙ্গ হলে Bangladesh আইনে কী পদক্ষেপ নেওয়া যায়?\",\n  \"chatHistory\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/ask",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "ask"]
+            },
+            "description": "একটি simple legal question করো। `chatHistory` empty রাখো।"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"question\": \"চুক্তি ভঙ্গ হলে Bangladesh আইনে কী পদক্ষেপ নেওয়া যায়?\",\n  \"answer\": \"Bangladesh Contract Act 1872 এর Section 73 অনুযায়ী, চুক্তি ভঙ্গ হলে ক্ষতিগ্রস্ত পক্ষ ক্ষতিপূরণ দাবি করতে পারেন...\",\n  \"timestamp\": \"2025-01-15T10:30:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/chat/ask — Multi-turn (chatHistory সহ)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"এই ক্ষেত্রে কত দিনের মধ্যে মামলা করতে হবে?\",\n  \"chatHistory\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"চুক্তি ভঙ্গ হলে Bangladesh আইনে কী পদক্ষেপ নেওয়া যায়?\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"content\": \"Bangladesh Contract Act 1872 এর Section 73 অনুযায়ী, চুক্তি ভঙ্গ হলে ক্ষতিগ্রস্ত পক্ষ ক্ষতিপূরণ দাবি করতে পারেন।\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/ask",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "ask"]
+            },
+            "description": "আগের প্রশ্নের context রেখে follow-up প্রশ্ন করো। `chatHistory`-তে আগের messages দাও।"
+          }
+        },
+        {
+          "name": "POST /api/chat/ask — Land Law Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"জমি কেনার সময় কোন কোন documents দরকার হয়?\",\n  \"chatHistory\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/ask",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "ask"]
+            },
+            "description": "Land law সম্পর্কিত প্রশ্ন।"
+          }
+        },
+        {
+          "name": "POST /api/chat/ask — Family Law Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Bangladesh-এ divorce এর legal process কী?\",\n  \"chatHistory\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/ask",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "ask"]
+            },
+            "description": "Muslim Family Laws Ordinance 1961 সম্পর্কিত প্রশ্ন।"
+          }
+        },
+        {
+          "name": "POST /api/chat/ask — Empty Question (Error Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400 for empty question', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"\",\n  \"chatHistory\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/ask",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chat", "ask"]
+            },
+            "description": "Validation test — empty question দিলে 400 error আসবে।"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📧 Email Management",
+      "description": "Gmail থেকে client emails sync করা এবং lawyer থেকে client কে email পাঠানো।\n\n**Flow:**\n1. `POST /sync` → Gmail INBOX থেকে নতুন client emails DB তে save করো\n2. `POST /send` → Lawyer থেকে client কে reply করো (Gmail দিয়ে যাবে + DB তে save হবে)\n3. `GET /messages/:id` → একটি conversation-এর সব emails দেখো",
+      "item": [
+        {
+          "name": "POST /api/emails/sync — Gmail থেকে Emails আনো",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Sync successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json).to.have.property('synced');",
+                  "    console.log('Synced emails:', json.synced);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/emails/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "emails", "sync"]
+            },
+            "description": "Gmail INBOX থেকে নতুন (unread) client emails fetch করে MongoDB তে save করো।\n\n12-hour job automatically এটি করে। এটি হলো manual trigger।\n\n**Note:** GMAIL_APP_PASSWORD সঠিকভাবে .env তে দেওয়া থাকতে হবে।"
+          },
+          "response": [
+            {
+              "name": "New Emails Synced",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"synced\": 3,\n  \"message\": \"3 new client email(s) synced from Gmail and saved to DB.\"\n}"
+            },
+            {
+              "name": "No New Emails",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"synced\": 0,\n  \"message\": \"0 new client email(s) synced from Gmail and saved to DB.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/emails/send — Client কে Email পাঠাও",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Email sent successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    if (json.conversationId) {",
+                  "        pm.collectionVariables.set('conversationId', json.conversationId);",
+                  "        console.log('conversationId saved:', json.conversationId);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"{{clientEmail}}\",\n  \"subject\": \"Your Case Update — Hearing Date Confirmed\",\n  \"body\": \"Dear Client,\\n\\nI hope this email finds you well.\\n\\nYour case hearing has been scheduled for Monday, January 20th at 10:00 AM at the District Court.\\n\\nPlease bring the following documents:\\n1. National ID Card\\n2. Original contract agreement\\n3. Any receipts or payment proofs\\n\\nPlease be there 30 minutes early.\\n\\nBest regards,\\nRuhul (Advocate)\",\n  \"conversationId\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/emails/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "emails", "send"]
+            },
+            "description": "Lawyer থেকে Client কে email পাঠাও।\n\n- Email টি Gmail দিয়ে যাবে\n- DB তে `outgoing` message হিসেবে save হবে\n- `conversationId` দিলে existing conversation-এ add হবে, `null` দিলে নতুন conversation তৈরি হবে\n\n**Test script:** Response থেকে `conversationId` automatically collection variable-এ save হবে।"
+          },
+          "response": [
+            {
+              "name": "Email Sent Successfully",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Email sent to client@gmail.com and saved to DB.\",\n  \"messageId\": \"<abc123@smtp.gmail.com>\",\n  \"conversationId\": \"65a1b2c3d4e5f6789012\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/emails/send — Reply to Existing Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"{{clientEmail}}\",\n  \"subject\": \"Re: Your Legal Query\",\n  \"body\": \"Dear Client,\\n\\nThank you for your email.\\n\\nRegarding your question about the contract dispute, I have reviewed the documents you sent.\\n\\nWe will discuss this in detail at our next meeting.\\n\\nBest regards,\\nRuhul (Advocate)\",\n  \"conversationId\": \"{{conversationId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/emails/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "emails", "send"]
+            },
+            "description": "Existing conversation-এ reply করো। `conversationId` variable set থাকতে হবে।"
+          }
+        },
+        {
+          "name": "GET /api/emails/messages/:id — Conversation Timeline দেখো",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Messages fetched', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    console.log('Total messages:', json.count);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/emails/messages/{{conversationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "emails", "messages", "{{conversationId}}"]
+            },
+            "description": "একটি conversation-এর সব messages chronological order-এ দেখো (oldest first)।\n\nIncoming (client) ও outgoing (lawyer) দুটোই দেখাবে।"
+          },
+          "response": [
+            {
+              "name": "Messages List",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"count\": 4,\n  \"messages\": [\n    {\n      \"_id\": \"65a1...\",\n      \"conversationId\": \"65a0...\",\n      \"sender\": \"client\",\n      \"senderEmail\": \"client@gmail.com\",\n      \"subject\": \"Contract Dispute Help\",\n      \"body\": \"I need help with my contract dispute...\",\n      \"direction\": \"incoming\",\n      \"isRead\": false,\n      \"createdAt\": \"2025-01-15T08:00:00Z\"\n    },\n    {\n      \"_id\": \"65a2...\",\n      \"sender\": \"lawyer\",\n      \"senderEmail\": \"ruhul@gmail.com\",\n      \"body\": \"Dear Client, I have reviewed your case...\",\n      \"direction\": \"outgoing\",\n      \"isRead\": true,\n      \"createdAt\": \"2025-01-15T09:30:00Z\"\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🗂️ Conversations",
+      "description": "Client-Lawyer conversation threads manage করো।\n\nপ্রতিটি conversation একজন client-এর সাথে সব emails-এর thread। প্রতিটি email sync বা send-এর সময় automatically conversation তৈরি বা update হয়।",
+      "item": [
+        {
+          "name": "GET /api/conversations — সব Conversations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Conversations fetched', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    if (json.conversations && json.conversations.length > 0) {",
+                  "        const firstId = json.conversations[0]._id;",
+                  "        pm.collectionVariables.set('conversationId', firstId);",
+                  "        console.log('First conversationId saved:', firstId);",
+                  "    }",
+                  "    console.log('Total conversations:', json.total);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations?status=active&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations"],
+              "query": [
+                { "key": "status", "value": "active", "description": "active | pending | closed (optional)" },
+                { "key": "page", "value": "1", "description": "Page number" },
+                { "key": "limit", "value": "20", "description": "Items per page" }
+              ]
+            },
+            "description": "সব client conversations দেখো (সর্বশেষ email-এর conversation আগে)।\n\n**Test script:** প্রথম conversation-এর `_id` automatically `conversationId` variable-এ save হবে।\n\n**Query params:**\n- `status`: `active` | `pending` | `closed` (না দিলে সব দেখাবে)\n- `page`: page number (default: 1)\n- `limit`: প্রতি page-এ কতটা (default: 20)"
+          },
+          "response": [
+            {
+              "name": "Conversations List",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"total\": 5,\n  \"page\": 1,\n  \"conversations\": [\n    {\n      \"_id\": \"65a1b2c3d4e5f6789012\",\n      \"subject\": \"Contract Dispute Help\",\n      \"clientEmail\": \"rahim@gmail.com\",\n      \"clientName\": \"Rahim Uddin\",\n      \"lawyerEmail\": \"ruhul@gmail.com\",\n      \"status\": \"active\",\n      \"messageCount\": 8,\n      \"lastMessageAt\": \"2025-01-15T09:00:00Z\",\n      \"createdAt\": \"2025-01-10T08:00:00Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /api/conversations — All Status (No Filter)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations"]
+            },
+            "description": "Status filter ছাড়া সব conversations।"
+          }
+        },
+        {
+          "name": "GET /api/conversations — Closed Only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations?status=closed",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations"],
+              "query": [
+                { "key": "status", "value": "closed" }
+              ]
+            },
+            "description": "Closed conversations দেখো।"
+          }
+        },
+        {
+          "name": "GET /api/conversations/:id — Conversation Details + Messages",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Conversation details fetched', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json).to.have.property('conversation');",
+                  "    pm.expect(json).to.have.property('messages');",
+                  "    console.log('Messages count:', json.messages.length);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations/{{conversationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations", "{{conversationId}}"]
+            },
+            "description": "একটি specific conversation-এর সব details এবং সব messages একসাথে দেখো।"
+          },
+          "response": [
+            {
+              "name": "Conversation with Messages",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"conversation\": {\n    \"_id\": \"65a1b2c3...\",\n    \"subject\": \"Contract Dispute Help\",\n    \"clientEmail\": \"rahim@gmail.com\",\n    \"clientName\": \"Rahim Uddin\",\n    \"status\": \"active\",\n    \"messageCount\": 4\n  },\n  \"messages\": [\n    { \"sender\": \"client\", \"body\": \"I need help...\", \"direction\": \"incoming\" },\n    { \"sender\": \"lawyer\", \"body\": \"I will help you...\", \"direction\": \"outgoing\" }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "PATCH /api/conversations/:id/status — Mark as Active",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations/{{conversationId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations", "{{conversationId}}", "status"]
+            },
+            "description": "Conversation status `active` করো।"
+          }
+        },
+        {
+          "name": "PATCH /api/conversations/:id/status — Mark as Pending",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"pending\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations/{{conversationId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations", "{{conversationId}}", "status"]
+            },
+            "description": "Conversation status `pending` করো (client-এর reply-এর অপেক্ষায়)।"
+          }
+        },
+        {
+          "name": "PATCH /api/conversations/:id/status — Mark as Closed",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"closed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/conversations/{{conversationId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "conversations", "{{conversationId}}", "status"]
+            },
+            "description": "Case শেষ হলে conversation `closed` করো।"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Summaries (12-Hour Updates)",
+      "description": "AI-generated 12-hour conversation update reports।\n\n**কীভাবে কাজ করে:**\n1. প্রতিদিন সকাল ৮টা ও রাত ৮টায় (Dhaka time) job টি চলে\n2. Gmail থেকে নতুন emails sync করে\n3. শেষ 12 ঘন্টার client messages পড়ে\n4. AI একটি professional update report তৈরি করে\n5. Lawyer-এর Gmail-এ সুন্দর email পাঠায়\n6. Report টি DB তে save করে\n\nTest করতে `POST /trigger` use করো।",
+      "item": [
+        {
+          "name": "GET /api/summaries/latest — সর্বশেষ Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Latest summary fetched', function () {",
+                  "    if (pm.response.code === 404) {",
+                  "        console.log('No summary yet — run POST /trigger first');",
+                  "        return;",
+                  "    }",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    console.log('Summary sent to lawyer:', json.summary.sentToLawyer);",
+                  "    console.log('Messages processed:', json.summary.messageCount);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/summaries/latest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "summaries", "latest"]
+            },
+            "description": "AI-generated সর্বশেষ 12-hour update report দেখো।\n\nPOST /trigger চালানোর পরে এখানে এসে result দেখো।"
+          },
+          "response": [
+            {
+              "name": "Latest Summary",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"summary\": {\n    \"_id\": \"65a1...\",\n    \"summary\": \"Here is your 12-hour email conversation update:\\n\\n1. Rahim Uddin (rahim@gmail.com):\\n   - Discussed contract dispute regarding property sale\\n   - Requested urgent court filing by Friday\\n   - Action needed: Prepare petition documents\\n\\n2. Karim Ahmed (karim@gmail.com):\\n   - Inquired about divorce proceedings\\n   - Wants consultation appointment this week\",\n    \"conversationCount\": 2,\n    \"messageCount\": 5,\n    \"fromDate\": \"2025-01-15T08:00:00Z\",\n    \"toDate\": \"2025-01-15T20:00:00Z\",\n    \"sentToLawyer\": true,\n    \"sentAt\": \"2025-01-15T20:00:05Z\",\n    \"createdAt\": \"2025-01-15T20:00:04Z\"\n  }\n}"
+            },
+            {
+              "name": "No Summary Yet",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"No AI update summary found yet.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /api/summaries — সব Past Updates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('All summaries fetched', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    console.log('Total summaries in DB:', json.count);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/summaries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "summaries"]
+            },
+            "description": "DB তে save হওয়া সব AI update reports দেখো (সর্বশেষ ৩০টি, newest first)।"
+          }
+        },
+        {
+          "name": "POST /api/summaries/trigger — এখনই AI Update চালাও ⚡",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Job triggered', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    console.log('Job triggered! Check:');",
+                  "    console.log('1. Server logs in CMD');",
+                  "    console.log('2. Lawyer Gmail inbox (may take 30-60 seconds)');",
+                  "    console.log('3. GET /api/summaries/latest (after 30 seconds)');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/summaries/trigger",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "summaries", "trigger"]
+            },
+            "description": "12-hour job এখনই manually trigger করো। 12 ঘন্টা wait করতে হবে না।\n\n**চালানোর পরে দেখো:**\n1. CMD/Terminal-এ server logs\n2. Lawyer-এর Gmail inbox (30-60 seconds পরে)\n3. `GET /api/summaries/latest` — DB তে save হয়েছে কিনা\n\n**Test করার best flow:**\n1. কিছু client email Gmail-এ পাঠাও (বা POST /emails/sync করো)\n2. তারপর POST /summaries/trigger করো\n3. Lawyer-এর email check করো"
+          },
+          "response": [
+            {
+              "name": "Job Triggered",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"AI update job triggered! Check server logs and your email inbox.\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
