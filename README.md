@@ -1,19 +1,18 @@
 # ⚖️ AI Lawyer Assistant
 
-একজন Lawyer-এর daily email workflow কে AI দিয়ে automate করার সিস্টেম।
+An AI system that automates a lawyer's daily email workflow.
 
 ---
 
-## 🎯 Project এর উদ্দেশ্য
+## 🎯 Project Objective
 
-একজন Lawyer প্রতিদিন তার clients-দের সাথে **Gmail-এ email করে** কথা বলেন।  
-এই project টি তিনটি কাজ করে:
+A lawyer talks with clients daily via **Gmail email**. This project does three things:
 
-| # | কাজ | কীভাবে |
-|---|-----|---------|
-| 1 | **Email Conversations DB তে Store** | Lawyer ও Client-এর সব email MongoDB-তে save হয় |
-| 2 | **12 ঘন্টা পরপর AI Update** | AI, DB থেকে conversations পড়ে Lawyer-কে email করে — "আজকে কোন client কী বলেছে" |
-| 3 | **Legal Chatbot** | Lawyer যেকোনো আইনি প্রশ্ন করলে AI Bangladesh law অনুযায়ী উত্তর দেয় |
+| # | Task | How |
+|---|------|-----|
+| 1 | **Store Email Conversations in DB** | All lawyer and client emails are saved in MongoDB |
+| 2 | **AI Update Every 12 Hours** | AI reads conversations from DB and emails the lawyer a summary of what each client said |
+| 3 | **Legal Chatbot** | The lawyer asks legal questions; AI answers based on Bangladesh law |
 
 ---
 
@@ -25,7 +24,7 @@ Gmail (Client Emails)
         │  IMAP (every 12 hrs)
         ▼
 ┌───────────────────┐
-│   MongoDB (DB)    │  ◄── Lawyer-এর outgoing emails-ও save হয়
+│   MongoDB (DB)    │  ◄── Outgoing lawyer emails are also saved
 │                   │
 │  Conversations    │
 │  Messages         │
@@ -77,10 +76,10 @@ ai-lawyer-assistant/
     ├── services/
     │   ├── emailService.js         # Gmail IMAP sync + SMTP send
     │   ├── openaiService.js        # AI summary + Legal chatbot
-    │   └── notificationService.js  # Lawyer কে update email পাঠানো
+    │   └── notificationService.js  # Send update email to lawyer
     │
     ├── jobs/
-    │   └── aiSummaryJob.js         # 12-hour cron job (মূল automation)
+    │   └── aiSummaryJob.js         # 12-hour cron job (core automation)
     │
     ├── controllers/
     │   ├── chatController.js       # Legal chatbot endpoint
@@ -97,33 +96,33 @@ ai-lawyer-assistant/
 
 ---
 
-## ⚙️ Setup করো
+## ⚙️ Setup
 
-### Step 1 — Prerequisites
+### Step 1 - Prerequisites
 
-নিচেরগুলো installed থাকতে হবে:
+Make sure the following are installed:
 
-- **Node.js** → https://nodejs.org (v18+)
-- **MongoDB** → https://www.mongodb.com/try/download/community
-- **Gmail Account** with 2-Factor Authentication enabled
-
----
-
-### Step 2 — Gmail App Password তৈরি করো
-
-> ⚠️ `.env`-এ তোমার Gmail-এর আসল password **দেবে না**। একটি special App Password লাগবে।
-
-1. যাও → https://myaccount.google.com/apppasswords
-2. **App name** দাও: `AI Lawyer Assistant`
-3. **Create** করো
-4. Google একটি **16-digit password** দেবে (যেমন: `abcd efgh ijkl mnop`)
-5. সেটা `.env`-এ দাও (spaces ছাড়া)
+- **Node.js** -> https://nodejs.org (v18+)
+- **MongoDB** -> https://www.mongodb.com/try/download/community
+- **Gmail account** with 2-Factor Authentication enabled
 
 ---
 
-### Step 3 — `.env` File Configure করো
+### Step 2 - Create a Gmail App Password
 
-`server/.env` file খোলো এবং সব value দাও:
+> ⚠️ Do not put your real Gmail password in `.env`. Use an App Password.
+
+1. Go to -> https://myaccount.google.com/apppasswords
+2. Set **App name**: `AI Lawyer Assistant`
+3. Click **Create**
+4. Google will provide a **16-digit password** (example: `abcd efgh ijkl mnop`)
+5. Put it into `.env` (without spaces)
+
+---
+
+### Step 3 - Configure `.env`
+
+Open `server/.env` and set all values:
 
 ```env
 PORT=5000
@@ -131,25 +130,25 @@ MONGO_URI=mongodb://localhost:27017/lawyerAI
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxx
 
 # Lawyer Information
-LAWYER_EMAIL=ruhul.cse.duet@gmail.com
+LAWYER_EMAIL=lawyer@gmail.com
 LAWYER_NAME=Ruhul (Advocate)
 
-# Gmail IMAP — Client-এর আসা emails পড়ার জন্য
+# Gmail IMAP - read incoming client emails
 GMAIL_USER=ruhul.cse.duet@gmail.com
-GMAIL_APP_PASSWORD=abcdefghijklmnop
+GMAIL_APP_PASSWORD=
 
-# Gmail SMTP — Emails পাঠানোর জন্য
+# Gmail SMTP - send emails
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=ruhul.cse.duet@gmail.com
-SMTP_PASS=abcdefghijklmnop
+SMTP_USER=lawyer.ai@gmail.com
+SMTP_PASS=
 ```
 
-> **OpenAI API Key** পাবে → https://platform.openai.com/api-keys
+> Get your **OpenAI API Key** -> https://platform.openai.com/api-keys
 
 ---
 
-### Step 4 — Install ও Run করো
+### Step 4 - Install and Run
 
 ```cmd
 cd C:\Users\ruhul\Desktop\project\ai-lawyer-assistant\server
@@ -159,64 +158,63 @@ npm install
 npm run dev
 ```
 
-সফলভাবে চললে দেখাবে:
+If successful, you will see:
 ```
 ✅ MongoDB Connected: localhost
 ✅ AI Update Job scheduled — runs at 8:00 AM & 8:00 PM (Dhaka time)
 ✅ Server running on port 5000
-📧 Lawyer: ruhul.cse.duet@gmail.com
+📧 Lawyer: lawyer@gmail.com
 ```
 
 ---
 
-## 🔄 12-Hour Job কীভাবে কাজ করে
+## 🔄 How the 12-Hour Job Works
 
-Job টি **প্রতিদিন সকাল ৮টা ও রাত ৮টায়** (Dhaka time) automatically চলে।
+The job runs **every day at 8:00 AM and 8:00 PM** (Dhaka time).
 
 ```
-Job শুরু
+Job starts
    │
-   ├─ Step 1: Gmail INBOX চেক করো
-   │          নতুন unread client emails → MongoDB তে save করো
+   ├─ Step 1: Check Gmail INBOX
+   │          New unread client emails -> save to MongoDB
    │
-   ├─ Step 2: DB থেকে শেষ 12 ঘন্টার
-   │          সব incoming (client) messages পড়ো
+   ├─ Step 2: Read the last 12 hours of
+   │          incoming (client) messages from DB
    │
-   ├─ Step 3: Messages গুলো client অনুযায়ী group করো
+   ├─ Step 3: Group messages by client
    │
-   ├─ Step 4: OpenAI GPT কে পাঠাও
-   │          → AI একটি professional update report তৈরি করে
-   │          → "Client X বলেছেন..., Client Y জানতে চেয়েছেন..., Follow-up দরকার..."
+   ├─ Step 4: Send to OpenAI GPT
+   │          -> AI creates a professional update report
+   │          -> "Client X said..., Client Y asked..., Follow-up needed..."
    │
-   ├─ Step 5: Report টি MongoDB তে save করো (AISummary collection)
+   ├─ Step 5: Save report to MongoDB (AISummary collection)
    │
-   └─ Step 6: Lawyer-এর Gmail-এ সুন্দর HTML email পাঠাও
-              → Subject: "⚖️ Email Update: 5 client message(s) in last 12 hours"
+   └─ Step 6: Send a styled HTML email to the lawyer's Gmail
+              -> Subject: "⚖️ Email Update: 5 client message(s) in last 12 hours"
 ```
 
 ---
 
-## 💬 Legal Chatbot কীভাবে কাজ করে
+## 💬 How the Legal Chatbot Works
 
-Lawyer যখন `/api/chat/ask`-এ question পাঠান:
+When the lawyer sends a question to `/api/chat/ask`:
 
 ```
-Lawyer → "চুক্তি ভঙ্গ হলে কী করতে পারি?"
+Lawyer -> "What can I do if a contract is breached?"
               │
               ▼
          OpenAI GPT
     (Bangladesh Law expert)
               │
               ▼
-   "Bangladesh Contract Act 1872
-    এর Section 73 অনুযায়ী..."
+   "According to Section 73 of the Bangladesh Contract Act 1872..."
               │
               ▼
-         Lawyer পান উত্তর
+         Lawyer receives the answer
 ```
 
-- **chatHistory** পাঠালে AI আগের কথোপকথন মনে রাখে
-- Bangladesh-এর সব major আইন সম্পর্কে জ্ঞান আছে
+- If you pass **chatHistory**, the AI keeps conversation context
+- The assistant is trained for major Bangladesh laws
 
 ---
 
@@ -225,12 +223,12 @@ Lawyer → "চুক্তি ভঙ্গ হলে কী করতে পা
 ### 🤖 Legal Chatbot
 
 #### `POST /api/chat/ask`
-Lawyer আইনি প্রশ্ন করবেন।
+The lawyer asks a legal question.
 
 **Request:**
 ```json
 {
-  "question": "চুক্তি ভঙ্গ হলে Bangladesh আইনে কী পদক্ষেপ নেওয়া যায়?",
+  "question": "What legal steps can I take for a contract breach under Bangladesh law?",
   "chatHistory": []
 }
 ```
@@ -239,19 +237,19 @@ Lawyer আইনি প্রশ্ন করবেন।
 ```json
 {
   "success": true,
-  "question": "চুক্তি ভঙ্গ হলে...",
-  "answer": "Bangladesh Contract Act 1872 এর Section 73 অনুযায়ী...",
+  "question": "What legal steps can I take for a contract breach under Bangladesh law?",
+  "answer": "According to Section 73 of the Bangladesh Contract Act 1872...",
   "timestamp": "2025-01-15T10:30:00.000Z"
 }
 ```
 
-**Multi-turn conversation (chatHistory ব্যবহার করে):**
+**Multi-turn conversation (using chatHistory):**
 ```json
 {
-  "question": "এই ক্ষেত্রে কত দিনের মধ্যে মামলা করতে হবে?",
+  "question": "How long do I have to file a case in this scenario?",
   "chatHistory": [
-    { "role": "user", "content": "চুক্তি ভঙ্গ হলে কী করতে পারি?" },
-    { "role": "assistant", "content": "Bangladesh Contract Act 1872..." }
+    { "role": "user", "content": "What can I do if a contract is breached?" },
+    { "role": "assistant", "content": "According to the Bangladesh Contract Act 1872..." }
   ]
 }
 ```
@@ -261,7 +259,7 @@ Lawyer আইনি প্রশ্ন করবেন।
 ### 📧 Email Management
 
 #### `POST /api/emails/sync`
-Gmail থেকে নতুন client emails manually sync করো।
+Manually sync new client emails from Gmail.
 
 **Response:**
 ```json
@@ -273,27 +271,27 @@ Gmail থেকে নতুন client emails manually sync করো।
 ```
 
 #### `POST /api/emails/send`
-Lawyer থেকে Client কে email পাঠাও (Gmail দিয়ে যাবে + DB তে save হবে)।
+Send an email to a client (sent via Gmail + saved to DB).
 
 **Request:**
 ```json
 {
   "to": "client@gmail.com",
-  "subject": "Your Case Update — Hearing Date",
+  "subject": "Your Case Update - Hearing Date",
   "body": "Dear Client,\n\nYour case hearing is scheduled for Monday, January 20th at 10:00 AM.",
   "conversationId": "65a1b2c3d4e5f6789"
 }
 ```
 
 #### `GET /api/emails/messages/:conversationId`
-একটি conversation-এর সব messages দেখো (timeline order)।
+Get all messages for a conversation (timeline order).
 
 ---
 
 ### 🗂️ Conversations
 
 #### `GET /api/conversations`
-সব client conversations দেখো।
+List all client conversations.
 
 Query params: `?status=active&page=1&limit=20`
 
@@ -317,10 +315,10 @@ Query params: `?status=active&page=1&limit=20`
 ```
 
 #### `GET /api/conversations/:id`
-একটি conversation-এর সব details ও messages।
+Get a conversation with all details and messages.
 
 #### `PATCH /api/conversations/:id/status`
-Conversation status পরিবর্তন করো।
+Update conversation status.
 
 **Request:**
 ```json
@@ -333,13 +331,13 @@ Status options: `active` | `pending` | `closed`
 ### 📊 AI Summaries
 
 #### `GET /api/summaries/latest`
-সর্বশেষ AI-generated update report দেখো।
+Get the latest AI-generated update report.
 
 #### `GET /api/summaries`
-সব past summaries দেখো (সর্বশেষ ৩০টি)।
+Get past summaries (latest 30).
 
 #### `POST /api/summaries/trigger`
-এখনই AI update job চালাও (12 ঘন্টা wait না করে)।
+Trigger the AI update job now (no need to wait 12 hours).
 
 **Response:**
 ```json
@@ -351,30 +349,30 @@ Status options: `active` | `pending` | `closed`
 
 ---
 
-## 🧪 Postman দিয়ে Test করো
+## 🧪 Postman Tests
 
-### Test 1 — Server চলছে কিনা
+### Test 1 - Server status
 ```
 GET http://localhost:5000/
 ```
 
-### Test 2 — Chatbot test করো
+### Test 2 - Chatbot test
 ```
 POST http://localhost:5000/api/chat/ask
 Content-Type: application/json
 
 {
-  "question": "জমি বিক্রির চুক্তি কীভাবে করতে হয়?",
+  "question": "How do I draft a land sale agreement?",
   "chatHistory": []
 }
 ```
 
-### Test 3 — Gmail sync করো (client emails আনো)
+### Test 3 - Gmail sync (fetch client emails)
 ```
 POST http://localhost:5000/api/emails/sync
 ```
 
-### Test 4 — Client কে email পাঠাও
+### Test 4 - Send an email to a client
 ```
 POST http://localhost:5000/api/emails/send
 Content-Type: application/json
@@ -386,13 +384,13 @@ Content-Type: application/json
 }
 ```
 
-### Test 5 — AI update job এখনই চালাও
+### Test 5 - Trigger AI update job now
 ```
 POST http://localhost:5000/api/summaries/trigger
 ```
-→ কয়েক সেকেন্ড পর তোমার Gmail-এ AI update email আসবে।
+-> You will receive an AI update email in a few seconds.
 
-### Test 6 — সব conversations দেখো
+### Test 6 - List all conversations
 ```
 GET http://localhost:5000/api/conversations
 ```
@@ -401,39 +399,39 @@ GET http://localhost:5000/api/conversations
 
 ## 🛠️ Troubleshooting
 
-| সমস্যা | কারণ | সমাধান |
-|--------|------|--------|
-| `MongoDB connection failed` | MongoDB service বন্ধ | CMD-এ: `net start MongoDB` |
-| `IMAP Error: Invalid credentials` | App Password ভুল | Google Account → App Passwords → নতুন করে generate করো |
-| `OpenAI error: 401` | API Key ভুল | platform.openai.com থেকে নতুন key নাও |
-| `OpenAI error: 429` | Credit শেষ | OpenAI account-এ balance add করো |
-| `Cannot find module` | packages install হয়নি | `npm install` আবার চালাও |
-| Gmail sync কাজ করছে না | IMAP disabled | Gmail Settings → See all settings → Forwarding and POP/IMAP → IMAP enable করো |
+| Problem | Cause | Fix |
+|--------|-------|-----|
+| `MongoDB connection failed` | MongoDB service is stopped | In CMD: `net start MongoDB` |
+| `IMAP Error: Invalid credentials` | App Password is wrong | Google Account -> App Passwords -> generate a new one |
+| `OpenAI error: 401` | API Key is invalid | Get a new key from platform.openai.com |
+| `OpenAI error: 429` | Quota exhausted | Add credit to your OpenAI account |
+| `Cannot find module` | Packages not installed | Run `npm install` again |
+| Gmail sync not working | IMAP disabled | Gmail Settings -> See all settings -> Forwarding and POP/IMAP -> enable IMAP |
 
 ---
 
 ## 📦 Tech Stack
 
-| Technology | ব্যবহার |
+| Technology | Purpose |
 |------------|---------|
 | **Node.js + Express** | Backend server |
-| **MongoDB + Mongoose** | Database — conversations ও messages store |
+| **MongoDB + Mongoose** | Database - store conversations and messages |
 | **node-cron** | 12-hour automated job scheduling |
-| **imap + mailparser** | Gmail থেকে emails পড়া |
-| **nodemailer** | Emails পাঠানো |
-| **OpenAI GPT-4o-mini** | AI summary generation ও legal chatbot |
+| **imap + mailparser** | Read emails from Gmail |
+| **nodemailer** | Send emails |
+| **OpenAI GPT-4o-mini** | AI summary generation and legal chatbot |
 | **dotenv** | Environment variables |
 
 ---
 
 ## 🔐 Security Notes
 
-- `.env` file কখনো GitHub-এ push করবে না — `.gitignore`-এ রাখো
-- Gmail-এর আসল password ব্যবহার করো না — সবসময় **App Password** ব্যবহার করো
-- OpenAI API key private রাখো — publicly share করো না
+- Never push `.env` to GitHub - keep it in `.gitignore`
+- Do not use your real Gmail password - always use an **App Password**
+- Keep your OpenAI API key private - do not share publicly
 
 ---
 
 ## 📄 License
 
-MIT License — Personal use only.
+MIT License - Personal use only.
